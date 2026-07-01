@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CornSense - Monitoring Pertanian Pintar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-green: #2d6a4f;
+            --accent-yellow: #ffb703;
+        }
+        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+        .bg-app-green { background-color: #2d6a4f; }
+        .bg-app-yellow { background-color: #ffb703; }
+        .text-app-yellow { color: #ffb703; }
+        
+        .card-glow:hover {
+            box-shadow: 0 0 20px rgba(255, 183, 3, 0.4);
+            transform: translateY(-2px);
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #2d6a4f; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <nav class="bg-app-green text-white p-4 sticky top-0 z-50 shadow-xl border-b border-yellow-600/30">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-seedling text-app-yellow text-3xl"></i>
+                <span class="text-2xl font-black tracking-tighter">CORNSENSE</span>
+            </div>
+            <div class="hidden md:flex gap-6 font-bold text-[11px] uppercase tracking-widest items-center">
+                <a href="#home" class="hover:text-app-yellow">Beranda</a>
+                <a href="#realtime" class="hover:text-app-yellow">Realtime Sensor</a>
+                <a href="#history" class="hover:text-app-yellow">Riwayat Data</a>
+                <a href="#login" class="bg-app-yellow text-app-green px-5 py-2 rounded-full hover:bg-white ml-4">Masuk</a>
+            </div>
+        </div>
+    </nav>
+
+    <header id="home" class="bg-app-green py-20 relative overflow-hidden">
+        <div class="container mx-auto px-6 flex flex-col md:flex-row items-center">
+            <div class="md:w-1/2 text-white z-10">
+                <h1 class="text-5xl md:text-7xl font-black leading-none mb-6">PEMANTAUAN <br><span class="text-app-yellow">LAHAN JAGUNG</span></h1>
+                <p class="text-lg opacity-80 mb-8 max-w-lg">Sistem monitoring berbasis IoT untuk meningkatkan efisiensi dan hasil panen melalui data sensor presisi tinggi.</p>
+                <a href="#realtime" class="inline-block bg-app-yellow text-app-green font-extrabold px-8 py-3 rounded-xl hover:scale-105 transition shadow-2xl uppercase text-sm">Lihat Data</a>
+            </div>
+            <div class="md:w-1/2 mt-12 md:mt-0 flex justify-center relative">
+                <img src="https://img.icons8.com/color/512/corn.png" alt="Corn" class="w-64 md:w-80 animate-bounce z-10" style="animation-duration: 5s;">
+            </div>
+        </div>
+    </header>
+
+    <section id="realtime" class="py-16 container mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-black text-app-green mb-2 uppercase">Monitoring Realtime</h2>
+            <div class="flex justify-center gap-4 mt-6">
+                <button onclick="switchLoc('pinang')" id="btn-pinang" class="px-6 py-2 rounded-full font-bold transition shadow-lg bg-app-green text-white text-xs">Lahan Pinang Kencana</button>
+                <button onclick="switchLoc('senggarang')" id="btn-senggarang" class="px-6 py-2 rounded-full font-bold transition shadow-lg bg-gray-200 text-gray-600 text-xs">Lahan Senggarang</button>
+            </div>
+            <p id="live-clock" class="mt-4 font-mono text-app-green font-bold text-lg"></p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-20">
+            <div class="bg-app-yellow p-4 rounded-2xl text-center shadow-md card-glow">
+                <i class="fas fa-sun text-app-green mb-1"></i>
+                <p class="text-[9px] font-bold uppercase text-app-green/70">Cahaya</p>
+                <div class="text-xl font-black text-app-green"><span id="v-lux">0</span> <span class="text-[10px]">Lux</span></div>
+            </div>
+            <div class="bg-app-yellow p-4 rounded-2xl text-center shadow-md card-glow">
+                <i class="fas fa-mountain text-app-green mb-1"></i>
+                <p class="text-[9px] font-bold uppercase text-app-green/70">Suhu Tanah</p>
+                <div class="text-xl font-black text-app-green"><span id="v-temp-t">0</span> <span class="text-[10px]">°C</span></div>
+            </div>
+            <div class="bg-app-yellow p-4 rounded-2xl text-center shadow-md card-glow">
+                <i class="fas fa-thermometer-half text-app-green mb-1"></i>
+                <p class="text-[9px] font-bold uppercase text-app-green/70">Suhu Udara</p>
+                <div class="text-xl font-black text-app-green"><span id="v-temp-u">0</span> <span class="text-[10px]">°C</span></div>
+            </div>
+            <div class="bg-app-yellow p-4 rounded-2xl text-center shadow-md card-glow">
+                <i class="fas fa-tint text-app-green mb-1"></i>
+                <p class="text-[9px] font-bold uppercase text-app-green/70">Lembap Tanah</p>
+                <div class="text-xl font-black text-app-green"><span id="v-hum-t">0</span> <span class="text-[10px]">%</span></div>
+            </div>
+            <div class="bg-app-yellow p-4 rounded-2xl text-center shadow-md card-glow">
+                <i class="fas fa-wind text-app-green mb-1"></i>
+                <p class="text-[9px] font-bold uppercase text-app-green/70">Lembap Udara</p>
+                <div class="text-xl font-black text-app-green"><span id="v-hum-u">0</span> <span class="text-[10px]">%</span></div>
+            </div>
+            <div class="bg-app-yellow p-4 rounded-2xl text-center shadow-md card-glow">
+                <i class="fas fa-flask text-app-green mb-1"></i>
+                <p class="text-[9px] font-bold uppercase text-app-green/70">pH Tanah</p>
+                <div class="text-xl font-black text-app-green"><span id="v-ph">0</span> <span class="text-[10px]">pH</span></div>
+            </div>
+            <div class="bg-app-yellow p-4 rounded-2xl text-center shadow-md card-glow">
+                <i class="fas fa-car-battery text-app-green mb-1"></i>
+                <p class="text-[9px] font-bold uppercase text-app-green/70">Baterai</p>
+                <div class="text-xl font-black text-app-green"><span id="v-volt">0</span> <span class="text-[10px]">V</span></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="history" class="py-16 bg-gray-50 border-t border-gray-200">
+        <div class="container mx-auto px-4 md:px-6">
+            <div class="flex justify-between items-center mb-10">
+                <h2 class="text-3xl font-black text-app-green uppercase tracking-tight">Riwayat Data </h2>
+                 <button onclick="exportCSV()" class="bg-green-700 hover:bg-green-800 text-white px-6 py-2 rounded-xl font-bold text-xs shadow-lg flex items-center gap-2 transition">
+                    <i class="fas fa-file-excel text-lg"></i> Export Log Excel (CSV)
+                 </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-3xl shadow-lg border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <span class="font-bold text-app-green text-xs">INTENSITAS CAHAYA</span>
+                    </div>
+                    <div class="h-48"><canvas id="chart-lux"></canvas></div>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl shadow-lg border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <span class="font-bold text-app-green text-xs">SUHU UDARA</span>
+                    </div>
+                    <div class="h-48"><canvas id="chart-temp-u"></canvas></div>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl shadow-lg border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <span class="font-bold text-app-green text-xs">KELEMBAPAN UDARA</span>
+                    </div>
+                    <div class="h-48"><canvas id="chart-hum-u"></canvas></div>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl shadow-lg border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <span class="font-bold text-app-green text-xs">KELEMBAPAN TANAH</span>
+                    </div>
+                    <div class="h-48"><canvas id="chart-hum-t"></canvas></div>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl shadow-lg border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <span class="font-bold text-app-green text-xs">SUHU TANAH</span>
+                    </div>
+                    <div class="h-48"><canvas id="chart-temp-t"></canvas></div>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl shadow-lg border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <span class="font-bold text-app-green text-xs">PH TANAH</span>
+                    </div>
+                    <div class="h-48"><canvas id="chart-ph"></canvas></div>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl shadow-lg border border-gray-100">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <span class="font-bold text-app-green text-xs">TEGANGAN BATERAI</span>
+                    </div>
+                    <div class="h-48"><canvas id="chart-volt"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="login" class="py-24 bg-white flex justify-center items-center">
+        <div class="w-full max-w-sm p-8 bg-gray-50 rounded-[2.5rem] shadow-2xl relative border border-gray-200">
+            <div class="text-center mb-10">
+                <div class="bg-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner border-2 border-app-green">
+                    <i class="fas fa-lock text-app-green text-xl"></i>
+                </div>
+                <h3 class="text-xl font-black text-app-green uppercase">Akses Sistem</h3>
+            </div>
+            <form class="space-y-4">
+                <input type="text" placeholder="Username" class="w-full px-5 py-3 bg-white rounded-2xl border-gray-200 focus:ring-2 focus:ring-app-green outline-none text-sm transition">
+                <input type="password" placeholder="Password" class="w-full px-5 py-3 bg-white rounded-2xl border-gray-200 focus:ring-2 focus:ring-app-green outline-none text-sm transition">
+                <button type="button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-2xl shadow-lg transition uppercase text-sm tracking-widest mt-4">Login</button>
+            </form>
+        </div>
+    </section>
+
+    <footer class="bg-app-green text-white py-10 text-center border-t-8 border-app-yellow">
+        <p class="font-bold opacity-30 uppercase tracking-[0.2em] text-[9px]">&copy; 2026 CORNSENSE - SMART AGRICULTURE</p>
+    </footer>
+
+<script>
+        // 1. VARIABEL GLOBAL
+        let currentLoc = 'pinang';
+        const MAX_POINTS = 15;
+        const chartInstances = {}; // Tempat menyimpan objek chart
+        let dataLog = []; 
+
+        // Expore objek chart ke window agar bisa diakses oleh script type="module" Firebase
+        window.chartInstances = chartInstances;
+
+        function switchLoc(loc) {
+            currentLoc = loc;
+            document.getElementById('btn-pinang').className = loc === 'pinang' ? 'px-6 py-2 rounded-full font-bold transition shadow-lg bg-app-green text-white text-xs' : 'px-6 py-2 rounded-full font-bold transition shadow-lg bg-gray-200 text-gray-600 text-xs';
+            document.getElementById('btn-senggarang').className = loc === 'senggarang' ? 'px-6 py-2 rounded-full font-bold transition shadow-lg bg-app-green text-white text-xs' : 'px-6 py-2 rounded-full font-bold transition shadow-lg bg-gray-200 text-gray-600 text-xs';
+            
+            Object.values(chartInstances).forEach(chart => {
+                chart.data.labels = Array(MAX_POINTS).fill('--:--:--');
+                chart.data.datasets[0].data = Array(MAX_POINTS).fill(0);
+                chart.update();
+            });
+            dataLog = [];
+            if(window.loadData){
+                if(loc==='pinang'){
+                    window.loadData(window.sensorRefPinang);
+                }else{
+                    window.loadData(window.sensorRefSenggarang);
+                }
+            }
+        }
+
+        // Fungsi inisialisasi grafik
+        function initChart(id, label, color) {
+            const canvasElement = document.getElementById(id);
+            if (!canvasElement) return; // Proteksi jika elemen tidak ada
+            
+            const ctx = canvasElement.getContext('2d');
+            chartInstances[id] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array(MAX_POINTS).fill('--:--:--'),
+                    datasets: [{
+                        label: label,
+                        data: Array(MAX_POINTS).fill(0),
+                        borderColor: color,
+                        backgroundColor: color + '15',
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        pointBackgroundColor: color,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { font: { size: 10, weight: 'bold' } } } },
+                    scales: {
+                        x: { ticks: { font: { size: 8 } }, grid: { display: false } },
+                        y: { ticks: { font: { size: 9 } }, grid: { color: '#f1f1f1' } }
+                    }
+                }
+            });
+        }
+
+        function exportCSV() {
+            if(dataLog.length === 0) return alert("Belum ada data dari Firebase!");
+            const headers = Object.keys(dataLog[0]).join(",");
+            const rows = dataLog.map(obj => Object.values(obj).join(",")).join("\n");
+            const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + headers + "\n" + rows;
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Log_CornSense_${currentLoc}_${new Date().getTime()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function updateTime() {
+            document.getElementById('live-clock').innerText = new Date().toLocaleString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+        }
+
+        // LANGSUNG BUAT GRAFIK SEKARANG (Tanpa menunggu DOMContentLoaded agar Firebase tidak mendahului)
+        updateTime(); 
+        setInterval(updateTime, 1000);
+        
+        initChart('chart-lux', 'Intensitas Cahaya (Lux)', '#ffb703');
+        initChart('chart-temp-u', 'Suhu Udara (°C)', '#ef4444');
+        initChart('chart-hum-u', 'Kelembapan Udara (%)', '#3b82f6');
+        initChart('chart-hum-t', 'Kelembapan Tanah (%)', '#064e3b');
+        initChart('chart-temp-t', 'Suhu Tanah (°C)', '#92400e');
+        initChart('chart-ph', 'pH Tanah', '#8b5cf6');
+        initChart('chart-volt', 'Tegangan Baterai (V)', '#10b981');
+    </script>
+
+    <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+// =======================
+// FIREBASE 1 (PINANG)
+// =======================
+const firebaseConfig1 = {
+    apiKey: "AIzaSyCM03GJp6nRtQvU9CyyYtbm2VNTso5PzZ8",
+    authDomain: "test-43e8c.firebaseapp.com",
+    databaseURL: "https://test-43e8c-default-rtdb.firebaseio.com",
+    projectId: "test-43e8c",
+    storageBucket: "test-43e8c.firebasestorage.app",
+    messagingSenderId: "966290863174",
+    appId: "1:966290863174:web:4501e289ac4fc14c154647"
+};
+
+// =======================
+// FIREBASE 2 (SENGGARANG)
+// =======================
+const firebaseConfig2 = {
+    apiKey: "AIzaSyBrysVeGsR26U_aGgxczdA8SmGUt7zscPI",
+    authDomain: "coba-coba-b6c3a.firebaseapp.com",
+    databaseURL: "https://coba-coba-b6c3a-default-rtdb.firebaseio.com",
+    projectId: "coba-coba-b6c3a",
+    storageBucket: "coba-coba-b6c3a.firebasestorage.app",
+    messagingSenderId: "843084994008",
+    appId: "1:843084994008:web:fd638af05aad73b61d8ead"
+};
+// Inisialisasi Firebase
+const app1 = initializeApp(firebaseConfig1);
+const db1 = getDatabase(app1);
+
+// Firebase kedua HARUS diberi nama
+const app2 = initializeApp(firebaseConfig2, "firebase2");
+const db2 = getDatabase(app2);
+
+// Reference database
+const sensorRefPinang = ref(db1, "monitoring");
+const sensorRefSenggarang = ref(db2, "monitoring");
+
+let unsubscribe=null;
+
+function loadData(sensorRef){
+    if(unsubscribe) unsubscribe();
+
+
+    unsubscribe = onValue(sensorRef, (snapshot)=>{
+
+        const vals = snapshot.val();
+        if(!vals) return;
+
+            const lux = Number(vals.lux ?? 0);
+            const tempU = Number(vals.suhu_udara ?? 0); 
+            const tempT = Number(vals.suhu_tanah ?? 0); 
+            const humU = Number(vals.humidity ?? 0);    
+            const humT = Number(vals.moisture ?? 0);    
+            const ph = Number(vals.ph ?? 0);
+            const volt = Number(vals.tegangan ?? 0);    
+
+            // 1. Update text angka dashboard
+            document.getElementById("v-lux").innerText = lux.toFixed(0);
+            document.getElementById("v-temp-u").innerText = tempU.toFixed(1);
+            document.getElementById("v-temp-t").innerText = tempT.toFixed(1);
+            document.getElementById("v-hum-u").innerText = humU.toFixed(0);
+            document.getElementById("v-hum-t").innerText = humT.toFixed(0);
+            document.getElementById("v-ph").innerText = ph.toFixed(2);
+            document.getElementById("v-volt").innerText = volt.toFixed(2);
+
+            // 2. Log Data untuk CSV
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('id-ID', { hour12: false });
+            
+            dataLog.push({
+                Timestamp: now.toLocaleString('id-ID'),
+                Lahan: currentLoc === 'pinang' ? 'Pinang Kencana' : 'Senggarang',
+                Cahaya_Lux: lux.toFixed(0),
+                SuhuUdara_C: tempU.toFixed(1),
+                LembapUdara_P: humU.toFixed(0),
+                LembapTanah_P: humT.toFixed(0),
+                SuhuTanah_C: tempT.toFixed(1),
+                pH: ph.toFixed(2),
+                Baterai_V: volt.toFixed(2)
+            });
+            if(dataLog.length > 1000) dataLog.shift();
+
+            // 3. Masukkan data ke grafik Chart.js secara Realtime
+            const chartMapping = {
+                'chart-lux': lux, 
+                'chart-temp-u': tempU, 
+                'chart-hum-u': humU, 
+                'chart-hum-t': humT,
+                'chart-temp-t': tempT, 
+                'chart-ph': ph, 
+                'chart-volt': volt
+            };
+
+            Object.keys(chartMapping).forEach(id => {
+                const chart = window.chartInstances[id];
+                if (chart) {
+                    chart.data.labels.shift();
+                    chart.data.labels.push(timeStr);
+                    chart.data.datasets[0].data.shift();
+                    chart.data.datasets[0].data.push(chartMapping[id]);
+                    chart.update('none'); // Update instan tanpa animasi lag
+                }
+            });
+        });
+     }
+    
+window.sensorRefPinang=sensorRefPinang;
+window.sensorRefSenggarang=sensorRefSenggarang;
+window.loadData=loadData;
+loadData(sensorRefPinang);
+</script>
+</body>
+</html>
