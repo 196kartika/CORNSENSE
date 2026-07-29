@@ -348,38 +348,42 @@
 
             dataLog = [];
 
-            Object.keys(data).forEach(key => {
-                const item = data[key];
-                
-                const timestampStr = item.timestamp 
-                    ? new Date(item.timestamp).toLocaleString('id-ID') 
-                    : new Date().toLocaleString('id-ID');
-                    
-                const timeStr = item.timestamp 
-                    ? new Date(item.timestamp).toLocaleTimeString('id-ID', { hour12: false }) 
-                    : new Date().toLocaleTimeString('id-ID', { hour12: false });
+// Inside <script type="module"> pada fungsi loadDataFromFirebase:
 
-                const lux = Number(item.lux ?? 0);
-                const tempU = Number(item.suhu_udara ?? 0);
-                const tempT = Number(item.suhu_tanah ?? 0);
-                const humU = Number(item.humidity ?? 0);
-                const humT = Number(item.moisture ?? 0);
-                const ph = Number(item.ph ?? 0);
-                const volt = Number(item.tegangan ?? 0);
+Object.keys(data).forEach(key => {
+    const item = data[key];
+    
+    const timestampStr = item.timestamp 
+        ? new Date(item.timestamp).toLocaleString('id-ID') 
+        : new Date().toLocaleString('id-ID');
+        
+    const timeStr = item.timestamp 
+        ? new Date(item.timestamp).toLocaleTimeString('id-ID', { hour12: false }) 
+        : new Date().toLocaleTimeString('id-ID', { hour12: false });
 
-                dataLog.push({
-                    Timestamp: timestampStr,
-                    Waktu: timeStr,
-                    Lahan: currentLoc === 'pinang' ? 'Pinang Kencana' : 'Senggarang',
-                    Cahaya_Lux: lux.toFixed(0),
-                    SuhuUdara_C: tempU.toFixed(1),
-                    LembapUdara_P: humU.toFixed(0),
-                    LembapTanah_P: humT.toFixed(0),
-                    SuhuTanah_C: tempT.toFixed(1),
-                    pH: ph.toFixed(2),
-                    Baterai_V: volt.toFixed(2)
-                });
-            });
+    const lux = Number(item.lux ?? 0);
+    const tempU = Number(item.suhu_udara ?? 0);
+    const tempT = Number(item.suhu_tanah ?? 0);
+    const humU = Number(item.humidity ?? 0);
+    const humT = Number(item.moisture ?? 0);
+    const ph = Number(item.ph ?? 0);
+    
+    // DUMMY VOLTAGE (Nilai simulasi acak 11.8V - 12.6V)
+    const volt = 11.8 + (Math.random() * 0.8); 
+
+    dataLog.push({
+        Timestamp: timestampStr,
+        Waktu: timeStr,
+        Lahan: currentLoc === 'pinang' ? 'Pinang Kencana' : 'Senggarang',
+        Cahaya_Lux: lux.toFixed(0),
+        SuhuUdara_C: tempU.toFixed(1),
+        LembapUdara_P: humU.toFixed(0),
+        LembapTanah_P: humT.toFixed(0),
+        SuhuTanah_C: tempT.toFixed(1),
+        pH: ph.toFixed(2),
+        Baterai_V: volt.toFixed(2)
+    });
+});
 
             if (dataLog.length > 0) {
                 const latest = dataLog[dataLog.length - 1];
