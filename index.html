@@ -178,29 +178,11 @@
     </footer>
 
     <script>
-        // 1. VARIABEL GLOBAL & PERSISTENSI LOG
+        // 1. VARIABEL GLOBAL & LOG
         let currentLoc = 'pinang';
+        let dataLog = []; 
         const MAX_POINTS = 15;
         const chartInstances = {};
-        
-        // Memuat log data tersimpan dari LocalStorage sesuai lokasi
-        function getStoredLog(loc) {
-            try {
-                return JSON.parse(localStorage.getItem(`cornsense_log_${loc}`)) || [];
-            } catch(e) {
-                return [];
-            }
-        }
-
-        function saveLog(loc, logData) {
-            try {
-                localStorage.setItem(`cornsense_log_${loc}`, JSON.stringify(logData));
-            } catch(e) {
-                console.warn("Storage penuh:", e);
-            }
-        }
-
-        let dataLog = getStoredLog(currentLoc);
 
         window.chartInstances = chartInstances;
 
@@ -209,56 +191,19 @@
             if (el) el.innerText = dataLog.length;
         }
 
+        // SWITCH LOKASI
         function switchLoc(loc) {
             currentLoc = loc;
             document.getElementById('btn-pinang').className = loc === 'pinang' ? 'px-6 py-2 rounded-full font-bold transition shadow-lg bg-app-green text-white text-xs' : 'px-6 py-2 rounded-full font-bold transition shadow-lg bg-gray-200 text-gray-600 text-xs';
             document.getElementById('btn-senggarang').className = loc === 'senggarang' ? 'px-6 py-2 rounded-full font-bold transition shadow-lg bg-app-green text-white text-xs' : 'px-6 py-2 rounded-full font-bold transition shadow-lg bg-gray-200 text-gray-600 text-xs';
             
-            // Muat log data lokasi terpilih
-            dataLog = getStoredLog(currentLoc);
-            updateLogCountUI();
-
-            // Reset chart ke titik 0
-            Object.values(chartInstances).forEach(chart => {
-                chart.data.labels = Array(MAX_POINTS).fill('--:--:--');
-                chart.data.datasets[0].data = Array(MAX_POINTS).fill(0);
-                chart.update();
-            });
-
-            // Isi chart dengan data log terakhir jika ada
-            if (dataLog.length > 0) {
-                const recentData = dataLog.slice(-MAX_POINTS);
-                const chartKeys = ['chart-lux', 'chart-temp-u', 'chart-hum-u', 'chart-hum-t', 'chart-temp-t', 'chart-ph', 'chart-volt'];
-                const dataKeys = ['Cahaya_Lux', 'SuhuUdara_C', 'LembapUdara_P', 'LembapTanah_P', 'SuhuTanah_C', 'pH', 'Baterai_V'];
-
-                chartKeys.forEach((chartId, index) => {
-                    const chart = chartInstances[chartId];
-                    if (chart) {
-                        const labels = recentData.map(d => d.Waktu || '--:--:--');
-                        const values = recentData.map(d => Number(d[dataKeys[index]]) || 0);
-
-                        while (labels.length < MAX_POINTS) {
-                            labels.unshift('--:--:--');
-                            values.unshift(0);
-                        }
-
-                        chart.data.labels = labels;
-                        chart.data.datasets[0].data = values;
-                        chart.update();
-                    }
-                });
-            }
-
+            // Panggil Firebase untuk load data lokasi yang dipilih
             if (window.loadData) {
-                if (loc === 'pinang') {
-                    window.loadData(window.sensorRefPinang);
-                } else {
-                    window.loadData(window.sensorRefSenggarang);
-                }
+                window.loadData(loc);
             }
         }
 
-        // Fungsi inisialisasi grafik
+        // FUNGSI INISIALISASI GRAFIK
         function initChart(id, label, color) {
             const canvasElement = document.getElementById(id);
             if (!canvasElement) return;
@@ -309,11 +254,10 @@
         }
 
         function clearLog() {
-            if (confirm(`Apakah Anda yakin ingin menghapus seluruh riwayat log untuk Lahan ${currentLoc === 'pinang' ? 'Pinang Kencana' : 'Senggarang'}?`)) {
+            if (confirm(`Apakah Anda yakin ingin mereset tampilan log untuk Lahan ${currentLoc === 'pinang' ? 'Pinang Kencana' : 'Senggarang'}?`)) {
                 dataLog = [];
-                localStorage.removeItem(`cornsense_log_${currentLoc}`);
                 updateLogCountUI();
-                alert("Riwayat log berhasil dibersihkan!");
+                alert("Tampilan log dibersihkan.");
             }
         }
 
@@ -372,17 +316,14 @@
     function loadDataFromFirebase(db, nodeName) {
         if (unsubscribe) unsubscribe();
 
-        // Mengambil 100 data riwayat terakhir yang tersimpan di Firebase
         const historyRef = query(ref(db, nodeName), limitToLast(100));
 
         unsubscribe = onValue(historyRef, (snapshot) => {
             const data = snapshot.val();
             if (!data) return;
 
-            // Reset array log lokal
             dataLog = [];
 
-            // Iterasi seluruh data histori dari Firebase
             Object.keys(data).forEach(key => {
                 const item = data[key];
                 
@@ -416,7 +357,6 @@
                 });
             });
 
-            // Update statistik angka di UI sesuai data paling baru
             if (dataLog.length > 0) {
                 const latest = dataLog[dataLog.length - 1];
                 document.getElementById("v-lux").innerText = latest.Cahaya_Lux;
@@ -428,10 +368,7 @@
                 document.getElementById("v-volt").innerText = latest.Baterai_V;
             }
 
-            // Update Jumlah Log
             updateLogCountUI();
-
-            // Render ulang grafik berdasarkan riwayat data dari Firebase
             renderChartsWithData(dataLog);
         });
     }
@@ -459,7 +396,6 @@
         });
     }
 
-    // Fungsi trigger switch lokasi
     window.loadData = function(loc) {
         if (loc === 'pinang') {
             loadDataFromFirebase(db1, "monitoring_history");
@@ -468,7 +404,7 @@
         }
     };
 
-    // Jalankan awal
+    // Load awal
     window.loadData('pinang');
 </script>
 </body>
