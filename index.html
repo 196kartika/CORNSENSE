@@ -178,7 +178,6 @@
     </footer>
 
     <script>
-        // 1. VARIABEL GLOBAL & LOG
         let currentLoc = 'pinang';
         let dataLog = []; 
         const MAX_POINTS = 15;
@@ -191,19 +190,39 @@
             if (el) el.innerText = dataLog.length;
         }
 
-        // SWITCH LOKASI
+        // FUNGSI PAKSA RESET SEMUA TAMPILAN JADI 0 DAN KOSONG
+        function resetUIValues() {
+            dataLog = []; // Kosongkan data log local
+            updateLogCountUI();
+
+            document.getElementById("v-lux").innerText = "0";
+            document.getElementById("v-temp-u").innerText = "0";
+            document.getElementById("v-temp-t").innerText = "0";
+            document.getElementById("v-hum-u").innerText = "0";
+            document.getElementById("v-hum-t").innerText = "0";
+            document.getElementById("v-ph").innerText = "0";
+            document.getElementById("v-volt").innerText = "0";
+
+            Object.values(chartInstances).forEach(chart => {
+                chart.data.labels = Array(MAX_POINTS).fill('--:--:--');
+                chart.data.datasets[0].data = Array(MAX_POINTS).fill(0);
+                chart.update();
+            });
+        }
+
         function switchLoc(loc) {
             currentLoc = loc;
             document.getElementById('btn-pinang').className = loc === 'pinang' ? 'px-6 py-2 rounded-full font-bold transition shadow-lg bg-app-green text-white text-xs' : 'px-6 py-2 rounded-full font-bold transition shadow-lg bg-gray-200 text-gray-600 text-xs';
             document.getElementById('btn-senggarang').className = loc === 'senggarang' ? 'px-6 py-2 rounded-full font-bold transition shadow-lg bg-app-green text-white text-xs' : 'px-6 py-2 rounded-full font-bold transition shadow-lg bg-gray-200 text-gray-600 text-xs';
             
-            // Panggil Firebase untuk load data lokasi yang dipilih
+            // Langsung bersihkan layar saat tombol ditekan
+            resetUIValues();
+            
             if (window.loadData) {
                 window.loadData(loc);
             }
         }
 
-        // FUNGSI INISIALISASI GRAFIK
         function initChart(id, label, color) {
             const canvasElement = document.getElementById(id);
             if (!canvasElement) return;
@@ -255,8 +274,7 @@
 
         function clearLog() {
             if (confirm(`Apakah Anda yakin ingin mereset tampilan log untuk Lahan ${currentLoc === 'pinang' ? 'Pinang Kencana' : 'Senggarang'}?`)) {
-                dataLog = [];
-                updateLogCountUI();
+                resetUIValues();
                 alert("Tampilan log dibersihkan.");
             }
         }
@@ -281,9 +299,8 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-    import { getDatabase, ref, onValue, query, limitToLast } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+    import { getDatabase, ref, onValue, off, query, limitToLast } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
-    // CONFIG FIREBASE 1 (PINANG)
     const firebaseConfig1 = {
         apiKey: "AIzaSyCM03GJp6nRtQvU9CyyYtbm2VNTso5PzZ8",
         authDomain: "test-43e8c.firebaseapp.com",
@@ -294,7 +311,6 @@
         appId: "1:966290863174:web:4501e289ac4fc14c154647"
     };
 
-    // CONFIG FIREBASE 2 (SENGGARANG)
     const firebaseConfig2 = {
         apiKey: "AIzaSyBrysVeGsR26U_aGgxczdA8SmGUt7zscPI",
         authDomain: "coba-coba-b6c3a.firebaseapp.com",
@@ -311,16 +327,24 @@
     const app2 = initializeApp(firebaseConfig2, "firebase2");
     const db2 = getDatabase(app2);
 
-    let unsubscribe = null;
+    let activeQuery = null;
 
     function loadDataFromFirebase(db, nodeName) {
-        if (unsubscribe) unsubscribe();
+        // Matikan koneksi listener Firebase sebelumnya agar tidak saling tumpang tindih
+        if (activeQuery) {
+            off(activeQuery);
+        }
 
-        const historyRef = query(ref(db, nodeName), limitToLast(100));
+        activeQuery = query(ref(db, nodeName), limitToLast(100));
 
-        unsubscribe = onValue(historyRef, (snapshot) => {
+        onValue(activeQuery, (snapshot) => {
             const data = snapshot.val();
-            if (!data) return;
+            
+            // JIKA DATA KOSONG DI FIREBASE
+            if (!data) {
+                resetUIValues();
+                return;
+            }
 
             dataLog = [];
 
@@ -404,7 +428,6 @@
         }
     };
 
-    // Load awal
     window.loadData('pinang');
 </script>
 </body>
