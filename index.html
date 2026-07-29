@@ -335,141 +335,141 @@
         updateLogCountUI();
     </script>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getDatabase, ref, onValue, query, limitToLast } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
-        // CONFIG FIREBASE 1 (PINANG)
-        const firebaseConfig1 = {
-            apiKey: "AIzaSyCM03GJp6nRtQvU9CyyYtbm2VNTso5PzZ8",
-            authDomain: "test-43e8c.firebaseapp.com",
-            databaseURL: "https://test-43e8c-default-rtdb.firebaseio.com",
-            projectId: "test-43e8c",
-            storageBucket: "test-43e8c.firebasestorage.app",
-            messagingSenderId: "966290863174",
-            appId: "1:966290863174:web:4501e289ac4fc14c154647"
-        };
+    // CONFIG FIREBASE 1 (PINANG)
+    const firebaseConfig1 = {
+        apiKey: "AIzaSyCM03GJp6nRtQvU9CyyYtbm2VNTso5PzZ8",
+        authDomain: "test-43e8c.firebaseapp.com",
+        databaseURL: "https://test-43e8c-default-rtdb.firebaseio.com",
+        projectId: "test-43e8c",
+        storageBucket: "test-43e8c.firebasestorage.app",
+        messagingSenderId: "966290863174",
+        appId: "1:966290863174:web:4501e289ac4fc14c154647"
+    };
 
-        // CONFIG FIREBASE 2 (SENGGARANG)
-        const firebaseConfig2 = {
-            apiKey: "AIzaSyBrysVeGsR26U_aGgxczdA8SmGUt7zscPI",
-            authDomain: "coba-coba-b6c3a.firebaseapp.com",
-            databaseURL: "https://coba-coba-b6c3a-default-rtdb.firebaseio.com",
-            projectId: "coba-coba-b6c3a",
-            storageBucket: "coba-coba-b6c3a.firebasestorage.app",
-            messagingSenderId: "843084994008",
-            appId: "1:843084994008:web:fd638af05aad73b61d8ead"
-        };
+    // CONFIG FIREBASE 2 (SENGGARANG)
+    const firebaseConfig2 = {
+        apiKey: "AIzaSyBrysVeGsR26U_aGgxczdA8SmGUt7zscPI",
+        authDomain: "coba-coba-b6c3a.firebaseapp.com",
+        databaseURL: "https://coba-coba-b6c3a-default-rtdb.firebaseio.com",
+        projectId: "coba-coba-b6c3a",
+        storageBucket: "coba-coba-b6c3a.firebasestorage.app",
+        messagingSenderId: "843084994008",
+        appId: "1:843084994008:web:fd638af05aad73b61d8ead"
+    };
 
-        const app1 = initializeApp(firebaseConfig1);
-        const db1 = getDatabase(app1);
+    const app1 = initializeApp(firebaseConfig1);
+    const db1 = getDatabase(app1);
 
-        const app2 = initializeApp(firebaseConfig2, "firebase2");
-        const db2 = getDatabase(app2);
+    const app2 = initializeApp(firebaseConfig2, "firebase2");
+    const db2 = getDatabase(app2);
 
-        const sensorRefPinang = ref(db1, "monitoring");
-        const sensorRefSenggarang = ref(db2, "monitoring");
+    let unsubscribe = null;
 
-        let unsubscribe = null;
+    function loadDataFromFirebase(db, nodeName) {
+        if (unsubscribe) unsubscribe();
 
-        function processSingleEntry(vals, timestampStr, timeStr) {
-            const lux = Number(vals.lux ?? 0);
-            const tempU = Number(vals.suhu_udara ?? 0); 
-            const tempT = Number(vals.suhu_tanah ?? 0); 
-            const humU = Number(vals.humidity ?? 0);    
-            const humT = Number(vals.moisture ?? 0);    
-            const ph = Number(vals.ph ?? 0);
-            const volt = Number(vals.tegangan ?? 0);
+        // Mengambil 100 data riwayat terakhir yang tersimpan di Firebase
+        const historyRef = query(ref(db, nodeName), limitToLast(100));
 
-            // Update UI Cards Realtime
-            document.getElementById("v-lux").innerText = lux.toFixed(0);
-            document.getElementById("v-temp-u").innerText = tempU.toFixed(1);
-            document.getElementById("v-temp-t").innerText = tempT.toFixed(1);
-            document.getElementById("v-hum-u").innerText = humU.toFixed(0);
-            document.getElementById("v-hum-t").innerText = humT.toFixed(0);
-            document.getElementById("v-ph").innerText = ph.toFixed(2);
-            document.getElementById("v-volt").innerText = volt.toFixed(2);
+        unsubscribe = onValue(historyRef, (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
 
-            const newEntry = {
-                Timestamp: timestampStr,
-                Waktu: timeStr,
-                Lahan: currentLoc === 'pinang' ? 'Pinang Kencana' : 'Senggarang',
-                Cahaya_Lux: lux.toFixed(0),
-                SuhuUdara_C: tempU.toFixed(1),
-                LembapUdara_P: humU.toFixed(0),
-                LembapTanah_P: humT.toFixed(0),
-                SuhuTanah_C: tempT.toFixed(1),
-                pH: ph.toFixed(2),
-                Baterai_V: volt.toFixed(2)
-            };
+            // Reset array log lokal
+            dataLog = [];
 
-            // Cek duplikasi record berdasarkan Timestamp & nilai sensor
-            const isDuplicate = dataLog.some(item => item.Timestamp === newEntry.Timestamp && item.Cahaya_Lux === newEntry.Cahaya_Lux);
-            if (!isDuplicate) {
-                dataLog.push(newEntry);
-                if (dataLog.length > 5000) dataLog.shift(); // Maksimal 5000 log
-                saveLog(currentLoc, dataLog);
-                updateLogCountUI();
+            // Iterasi seluruh data histori dari Firebase
+            Object.keys(data).forEach(key => {
+                const item = data[key];
+                
+                const timestampStr = item.timestamp 
+                    ? new Date(item.timestamp).toLocaleString('id-ID') 
+                    : new Date().toLocaleString('id-ID');
+                    
+                const timeStr = item.timestamp 
+                    ? new Date(item.timestamp).toLocaleTimeString('id-ID', { hour12: false }) 
+                    : new Date().toLocaleTimeString('id-ID', { hour12: false });
+
+                const lux = Number(item.lux ?? 0);
+                const tempU = Number(item.suhu_udara ?? 0);
+                const tempT = Number(item.suhu_tanah ?? 0);
+                const humU = Number(item.humidity ?? 0);
+                const humT = Number(item.moisture ?? 0);
+                const ph = Number(item.ph ?? 0);
+                const volt = Number(item.tegangan ?? 0);
+
+                dataLog.push({
+                    Timestamp: timestampStr,
+                    Waktu: timeStr,
+                    Lahan: currentLoc === 'pinang' ? 'Pinang Kencana' : 'Senggarang',
+                    Cahaya_Lux: lux.toFixed(0),
+                    SuhuUdara_C: tempU.toFixed(1),
+                    LembapUdara_P: humU.toFixed(0),
+                    LembapTanah_P: humT.toFixed(0),
+                    SuhuTanah_C: tempT.toFixed(1),
+                    pH: ph.toFixed(2),
+                    Baterai_V: volt.toFixed(2)
+                });
+            });
+
+            // Update statistik angka di UI sesuai data paling baru
+            if (dataLog.length > 0) {
+                const latest = dataLog[dataLog.length - 1];
+                document.getElementById("v-lux").innerText = latest.Cahaya_Lux;
+                document.getElementById("v-temp-u").innerText = latest.SuhuUdara_C;
+                document.getElementById("v-temp-t").innerText = latest.SuhuTanah_C;
+                document.getElementById("v-hum-u").innerText = latest.LembapUdara_P;
+                document.getElementById("v-hum-t").innerText = latest.LembapTanah_P;
+                document.getElementById("v-ph").innerText = latest.pH;
+                document.getElementById("v-volt").innerText = latest.Baterai_V;
             }
 
-            // Update Chart.js Realtime
-            const chartMapping = {
-                'chart-lux': lux, 
-                'chart-temp-u': tempU, 
-                'chart-hum-u': humU, 
-                'chart-hum-t': humT,
-                'chart-temp-t': tempT, 
-                'chart-ph': ph, 
-                'chart-volt': volt
-            };
+            // Update Jumlah Log
+            updateLogCountUI();
 
-            Object.keys(chartMapping).forEach(id => {
-                const chart = window.chartInstances[id];
-                if (chart) {
-                    chart.data.labels.shift();
-                    chart.data.labels.push(timeStr);
-                    chart.data.datasets[0].data.shift();
-                    chart.data.datasets[0].data.push(chartMapping[id]);
-                    chart.update('none');
+            // Render ulang grafik berdasarkan riwayat data dari Firebase
+            renderChartsWithData(dataLog);
+        });
+    }
+
+    function renderChartsWithData(logs) {
+        const recentData = logs.slice(-MAX_POINTS);
+        const chartKeys = ['chart-lux', 'chart-temp-u', 'chart-hum-u', 'chart-hum-t', 'chart-temp-t', 'chart-ph', 'chart-volt'];
+        const dataKeys = ['Cahaya_Lux', 'SuhuUdara_C', 'LembapUdara_P', 'LembapTanah_P', 'SuhuTanah_C', 'pH', 'Baterai_V'];
+
+        chartKeys.forEach((chartId, index) => {
+            const chart = window.chartInstances[chartId];
+            if (chart) {
+                const labels = recentData.map(d => d.Waktu || '--:--:--');
+                const values = recentData.map(d => Number(d[dataKeys[index]]) || 0);
+
+                while (labels.length < MAX_POINTS) {
+                    labels.unshift('--:--:--');
+                    values.unshift(0);
                 }
-            });
+
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = values;
+                chart.update();
+            }
+        });
+    }
+
+    // Fungsi trigger switch lokasi
+    window.loadData = function(loc) {
+        if (loc === 'pinang') {
+            loadDataFromFirebase(db1, "monitoring_history");
+        } else {
+            loadDataFromFirebase(db2, "monitoring_history");
         }
+    };
 
-        function loadData(sensorRef) {
-            if (unsubscribe) unsubscribe();
-
-            unsubscribe = onValue(sensorRef, (snapshot) => {
-                const vals = snapshot.val();
-                if (!vals) return;
-
-                const now = new Date();
-                const timestampStr = now.toLocaleString('id-ID');
-                const timeStr = now.toLocaleTimeString('id-ID', { hour12: false });
-
-                // DUKUNGAN 1: Jika Firebase berisi objek riwayat (multiple records)
-                if (typeof vals === 'object' && vals !== null && !('lux' in vals) && !('suhu_udara' in vals)) {
-                    Object.keys(vals).forEach(key => {
-                        const item = vals[key];
-                        if (typeof item === 'object') {
-                            const itemTime = item.timestamp ? new Date(item.timestamp).toLocaleString('id-ID') : timestampStr;
-                            const itemClock = item.timestamp ? new Date(item.timestamp).toLocaleTimeString('id-ID', { hour12: false }) : timeStr;
-                            processSingleEntry(item, itemTime, itemClock);
-                        }
-                    });
-                } 
-                // DUKUNGAN 2: Jika Firebase berisi single object realtime (node overwrite)
-                else {
-                    processSingleEntry(vals, timestampStr, timeStr);
-                }
-            });
-        }
-
-        window.sensorRefPinang = sensorRefPinang;
-        window.sensorRefSenggarang = sensorRefSenggarang;
-        window.loadData = loadData;
-
-        // Muat data awal Lahan Pinang
-        loadData(sensorRefPinang);
-    </script>
+    // Jalankan awal
+    window.loadData('pinang');
+</script>
 </body>
 </html>
