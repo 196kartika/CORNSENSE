@@ -21,8 +21,6 @@
             box-shadow: 0 0 20px rgba(255, 183, 3, 0.4);
             transform: translateY(-2px);
         }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #2d6a4f; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -68,37 +66,37 @@
             <div class="bg-app-yellow p-4 rounded-2xl text-center shadow-md card-glow">
                 <i class="fas fa-sun text-app-green mb-1"></i>
                 <p class="text-[9px] font-bold uppercase text-app-green/70">Cahaya</p>
-                <div class="text-xl font-black text-app-green"><span id="v-lux">0</span> <span class="text-[10px]">Lux</span></div>
+                <div class="text-xl font-black text-app-green"><span id="v-lux">--</span> <span class="text-[10px]">Lux</span></div>
             </div>
             <div class="bg-app-yellow p-4 rounded-2xl text-center shadow-md card-glow">
                 <i class="fas fa-mountain text-app-green mb-1"></i>
                 <p class="text-[9px] font-bold uppercase text-app-green/70">Suhu Tanah</p>
-                <div class="text-xl font-black text-app-green"><span id="v-temp-t">0</span> <span class="text-[10px]">°C</span></div>
+                <div class="text-xl font-black text-app-green"><span id="v-temp-t">--</span> <span class="text-[10px]">°C</span></div>
             </div>
             <div class="bg-app-yellow p-4 rounded-2xl text-center shadow-md card-glow">
                 <i class="fas fa-thermometer-half text-app-green mb-1"></i>
                 <p class="text-[9px] font-bold uppercase text-app-green/70">Suhu Udara</p>
-                <div class="text-xl font-black text-app-green"><span id="v-temp-u">0</span> <span class="text-[10px]">°C</span></div>
+                <div class="text-xl font-black text-app-green"><span id="v-temp-u">--</span> <span class="text-[10px]">°C</span></div>
             </div>
             <div class="bg-app-yellow p-4 rounded-2xl text-center shadow-md card-glow">
                 <i class="fas fa-tint text-app-green mb-1"></i>
                 <p class="text-[9px] font-bold uppercase text-app-green/70">Lembap Tanah</p>
-                <div class="text-xl font-black text-app-green"><span id="v-hum-t">0</span> <span class="text-[10px]">%</span></div>
+                <div class="text-xl font-black text-app-green"><span id="v-hum-t">--</span> <span class="text-[10px]">%</span></div>
             </div>
             <div class="bg-app-yellow p-4 rounded-2xl text-center shadow-md card-glow">
                 <i class="fas fa-wind text-app-green mb-1"></i>
                 <p class="text-[9px] font-bold uppercase text-app-green/70">Lembap Udara</p>
-                <div class="text-xl font-black text-app-green"><span id="v-hum-u">0</span> <span class="text-[10px]">%</span></div>
+                <div class="text-xl font-black text-app-green"><span id="v-hum-u">--</span> <span class="text-[10px]">%</span></div>
             </div>
             <div class="bg-app-yellow p-4 rounded-2xl text-center shadow-md card-glow">
                 <i class="fas fa-flask text-app-green mb-1"></i>
                 <p class="text-[9px] font-bold uppercase text-app-green/70">pH Tanah</p>
-                <div class="text-xl font-black text-app-green"><span id="v-ph">0</span> <span class="text-[10px]">pH</span></div>
+                <div class="text-xl font-black text-app-green"><span id="v-ph">--</span> <span class="text-[10px]">pH</span></div>
             </div>
             <div class="bg-app-yellow p-4 rounded-2xl text-center shadow-md card-glow">
                 <i class="fas fa-car-battery text-app-green mb-1"></i>
                 <p class="text-[9px] font-bold uppercase text-app-green/70">Baterai</p>
-                <div class="text-xl font-black text-app-green"><span id="v-volt">0</span> <span class="text-[10px]">V</span></div>
+                <div class="text-xl font-black text-app-green"><span id="v-volt">--</span> <span class="text-[10px]">V</span></div>
             </div>
         </div>
     </section>
@@ -112,7 +110,7 @@
                 </div>
                 <div class="flex gap-2">
                     <button onclick="clearLog()" class="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-xl font-bold text-xs transition flex items-center gap-2">
-                        <i class="fas fa-trash"></i> Bersihkan Log
+                        <i class="fas fa-trash"></i> Bersihkan Tampilan
                     </button>
                     <button onclick="exportCSV()" class="bg-green-700 hover:bg-green-800 text-white px-6 py-2 rounded-xl font-bold text-xs shadow-lg flex items-center gap-2 transition">
                         <i class="fas fa-file-excel text-lg"></i> Export Log Excel (CSV)
@@ -190,33 +188,36 @@
             if (el) el.innerText = dataLog.length;
         }
 
-        // FUNGSI PAKSA RESET SEMUA TAMPILAN JADI 0 DAN KOSONG
+        // RESET UI HANYA SAAT DIBUTUHKAN (TANPA MEMASUKKAN NILAI 0 SEMENTARA)
         function resetUIValues() {
-            dataLog = []; // Kosongkan data log local
+            dataLog = [];
             updateLogCountUI();
 
-            document.getElementById("v-lux").innerText = "0";
-            document.getElementById("v-temp-u").innerText = "0";
-            document.getElementById("v-temp-t").innerText = "0";
-            document.getElementById("v-hum-u").innerText = "0";
-            document.getElementById("v-hum-t").innerText = "0";
-            document.getElementById("v-ph").innerText = "0";
-            document.getElementById("v-volt").innerText = "0";
+            document.getElementById("v-lux").innerText = "--";
+            document.getElementById("v-temp-u").innerText = "--";
+            document.getElementById("v-temp-t").innerText = "--";
+            document.getElementById("v-hum-u").innerText = "--";
+            document.getElementById("v-hum-t").innerText = "--";
+            document.getElementById("v-ph").innerText = "--";
+            document.getElementById("v-volt").innerText = "--";
 
             Object.values(chartInstances).forEach(chart => {
-                chart.data.labels = Array(MAX_POINTS).fill('--:--:--');
-                chart.data.datasets[0].data = Array(MAX_POINTS).fill(0);
+                chart.data.labels = [];
+                chart.data.datasets[0].data = [];
                 chart.update();
             });
         }
 
         function switchLoc(loc) {
+            if (currentLoc === loc) return;
             currentLoc = loc;
-            document.getElementById('btn-pinang').className = loc === 'pinang' ? 'px-6 py-2 rounded-full font-bold transition shadow-lg bg-app-green text-white text-xs' : 'px-6 py-2 rounded-full font-bold transition shadow-lg bg-gray-200 text-gray-600 text-xs';
-            document.getElementById('btn-senggarang').className = loc === 'senggarang' ? 'px-6 py-2 rounded-full font-bold transition shadow-lg bg-app-green text-white text-xs' : 'px-6 py-2 rounded-full font-bold transition shadow-lg bg-gray-200 text-gray-600 text-xs';
             
-            // Langsung bersihkan layar saat tombol ditekan
-            resetUIValues();
+            document.getElementById('btn-pinang').className = loc === 'pinang' 
+                ? 'px-6 py-2 rounded-full font-bold transition shadow-lg bg-app-green text-white text-xs' 
+                : 'px-6 py-2 rounded-full font-bold transition shadow-lg bg-gray-200 text-gray-600 text-xs';
+            document.getElementById('btn-senggarang').className = loc === 'senggarang' 
+                ? 'px-6 py-2 rounded-full font-bold transition shadow-lg bg-app-green text-white text-xs' 
+                : 'px-6 py-2 rounded-full font-bold transition shadow-lg bg-gray-200 text-gray-600 text-xs';
             
             if (window.loadData) {
                 window.loadData(loc);
@@ -231,10 +232,10 @@
             chartInstances[id] = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: Array(MAX_POINTS).fill('--:--:--'),
+                    labels: [],
                     datasets: [{
                         label: label,
-                        data: Array(MAX_POINTS).fill(0),
+                        data: [],
                         borderColor: color,
                         backgroundColor: color + '15',
                         borderWidth: 2,
@@ -301,15 +302,16 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
     import { getDatabase, ref, onValue, off, query, limitToLast } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCM03GJp6nRtQvU9CyyYtbm2VNTso5PzZ8",
-  authDomain: "test-43e8c.firebaseapp.com",
-  databaseURL: "https://test-43e8c-default-rtdb.firebaseio.com",
-  projectId: "test-43e8c",
-  storageBucket: "test-43e8c.firebasestorage.app",
-  messagingSenderId: "966290863174",
-  appId: "1:966290863174:web:4501e289ac4fc14c154647",
-};
+    // NAMA VARIABEL DISESUAIKAN SAMA DENGAN INI (firebaseConfig1):
+    const firebaseConfig1 = {
+        apiKey: "AIzaSyCM03GJp6nRtQvU9CyyYtbm2VNTso5PzZ8",
+        authDomain: "test-43e8c.firebaseapp.com",
+        databaseURL: "https://test-43e8c-default-rtdb.firebaseio.com",
+        projectId: "test-43e8c",
+        storageBucket: "test-43e8c.firebasestorage.app",
+        messagingSenderId: "966290863174",
+        appId: "1:966290863174:web:4501e289ac4fc14c154647",
+    };
 
     const firebaseConfig2 = {
         apiKey: "AIzaSyBrysVeGsR26U_aGgxczdA8SmGUt7zscPI",
@@ -330,7 +332,6 @@ const firebaseConfig = {
     let activeQuery = null;
 
     function loadDataFromFirebase(db, nodeName) {
-        // Matikan koneksi listener Firebase sebelumnya agar tidak saling tumpang tindih
         if (activeQuery) {
             off(activeQuery);
         }
@@ -340,50 +341,49 @@ const firebaseConfig = {
         onValue(activeQuery, (snapshot) => {
             const data = snapshot.val();
             
-            // JIKA DATA KOSONG DI FIREBASE
             if (!data) {
                 resetUIValues();
                 return;
             }
 
-            dataLog = [];
+            window.dataLog = [];
 
-// Inside <script type="module"> pada fungsi loadDataFromFirebase:
+            Object.keys(data).forEach(key => {
+                const item = data[key];
+                
+                const timestampStr = item.timestamp 
+                    ? new Date(item.timestamp).toLocaleString('id-ID') 
+                    : new Date().toLocaleString('id-ID');
+                    
+                const timeStr = item.timestamp 
+                    ? new Date(item.timestamp).toLocaleTimeString('id-ID', { hour12: false }) 
+                    : new Date().toLocaleTimeString('id-ID', { hour12: false });
 
-Object.keys(data).forEach(key => {
-    const item = data[key];
-    
-    const timestampStr = item.timestamp 
-        ? new Date(item.timestamp).toLocaleString('id-ID') 
-        : new Date().toLocaleString('id-ID');
-        
-    const timeStr = item.timestamp 
-        ? new Date(item.timestamp).toLocaleTimeString('id-ID', { hour12: false }) 
-        : new Date().toLocaleTimeString('id-ID', { hour12: false });
+                const lux = Number(item.lux ?? 0);
+                const tempU = Number(item.suhu_udara ?? 0);
+                const tempT = Number(item.suhu_tanah ?? 0);
+                const humU = Number(item.humidity ?? 0);
+                const humT = Number(item.moisture ?? 0);
+                const ph = Number(item.ph ?? 0);
+                
+                // Nilai tegangan simulasi acak konsisten
+                const volt = 11.8 + (Math.random() * 0.8); 
 
-    const lux = Number(item.lux ?? 0);
-    const tempU = Number(item.suhu_udara ?? 0);
-    const tempT = Number(item.suhu_tanah ?? 0);
-    const humU = Number(item.humidity ?? 0);
-    const humT = Number(item.moisture ?? 0);
-    const ph = Number(item.ph ?? 0);
-    
-    // DUMMY VOLTAGE (Nilai simulasi acak 11.8V - 12.6V)
-    const volt = 11.8 + (Math.random() * 0.8); 
+                window.dataLog.push({
+                    Timestamp: timestampStr,
+                    Waktu: timeStr,
+                    Lahan: currentLoc === 'pinang' ? 'Pinang Kencana' : 'Senggarang',
+                    Cahaya_Lux: lux.toFixed(0),
+                    SuhuUdara_C: tempU.toFixed(1),
+                    LembapUdara_P: humU.toFixed(0),
+                    LembapTanah_P: humT.toFixed(0),
+                    SuhuTanah_C: tempT.toFixed(1),
+                    pH: ph.toFixed(2),
+                    Baterai_V: volt.toFixed(2)
+                });
+            });
 
-    dataLog.push({
-        Timestamp: timestampStr,
-        Waktu: timeStr,
-        Lahan: currentLoc === 'pinang' ? 'Pinang Kencana' : 'Senggarang',
-        Cahaya_Lux: lux.toFixed(0),
-        SuhuUdara_C: tempU.toFixed(1),
-        LembapUdara_P: humU.toFixed(0),
-        LembapTanah_P: humT.toFixed(0),
-        SuhuTanah_C: tempT.toFixed(1),
-        pH: ph.toFixed(2),
-        Baterai_V: volt.toFixed(2)
-    });
-});
+            dataLog = window.dataLog;
 
             if (dataLog.length > 0) {
                 const latest = dataLog[dataLog.length - 1];
@@ -412,11 +412,6 @@ Object.keys(data).forEach(key => {
                 const labels = recentData.map(d => d.Waktu || '--:--:--');
                 const values = recentData.map(d => Number(d[dataKeys[index]]) || 0);
 
-                while (labels.length < MAX_POINTS) {
-                    labels.unshift('--:--:--');
-                    values.unshift(0);
-                }
-
                 chart.data.labels = labels;
                 chart.data.datasets[0].data = values;
                 chart.update();
@@ -432,6 +427,7 @@ Object.keys(data).forEach(key => {
         }
     };
 
+    // Muat data awal secara langsung dari Firebase saat halaman pertama kali direfresh
     window.loadData('pinang');
 </script>
 </body>
