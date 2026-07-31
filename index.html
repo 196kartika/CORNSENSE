@@ -301,15 +301,15 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
     import { getDatabase, ref, onValue, off, query, limitToLast } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
-    const firebaseConfig1 = {
-        apiKey: "AIzaSyCM03GJp6nRtQvU9CyyYtbm2VNTso5PzZ8",
-        authDomain: "test-43e8c.firebaseapp.com",
-        databaseURL: "https://test-43e8c-default-rtdb.firebaseio.com",
-        projectId: "test-43e8c",
-        storageBucket: "test-43e8c.firebasestorage.app",
-        messagingSenderId: "966290863174",
-        appId: "1:966290863174:web:4501e289ac4fc14c154647"
-    };
+const firebaseConfig = {
+  apiKey: "AIzaSyCM03GJp6nRtQvU9CyyYtbm2VNTso5PzZ8",
+  authDomain: "test-43e8c.firebaseapp.com",
+  databaseURL: "https://test-43e8c-default-rtdb.firebaseio.com",
+  projectId: "test-43e8c",
+  storageBucket: "test-43e8c.firebasestorage.app",
+  messagingSenderId: "966290863174",
+  appId: "1:966290863174:web:4501e289ac4fc14c154647",
+};
 
     const firebaseConfig2 = {
         apiKey: "AIzaSyBrysVeGsR26U_aGgxczdA8SmGUt7zscPI",
@@ -335,7 +335,7 @@
             off(activeQuery);
         }
 
-        activeQuery = query(ref(db, nodeName), limitToLast(100));
+        activeQuery = query(ref(db, nodeName), limitToLast(3000));
 
         onValue(activeQuery, (snapshot) => {
             const data = snapshot.val();
